@@ -1,0 +1,129 @@
+package home;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.mysql.jdbc.Connection;
+
+import instance.*;
+
+import connect.MySQLTools;
+public class Register extends HttpServlet {
+
+	private Connection conn;
+	String username;
+	String password;
+	String repassword;
+	String string_code;
+	/**
+	 * Constructor of the object.
+	 */
+	public Register() {
+		super();
+	}
+
+	/**
+	 * Destruction of the servlet. <br>
+	 */
+	public void destroy() {
+		super.destroy(); // Just puts "destroy" string in log
+		// Put your code here
+	}
+
+	/**
+	 * The doGet method of the servlet. <br>
+	 *
+	 * This method is called when a form has its tag value method equals to get.
+	 * 
+	 * @param request the request send by the client to the server
+	 * @param response the response send by the server to the client
+	 * @throws ServletException if an error occurred
+	 * @throws IOException if an error occurred
+	 */
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+
+		response.setContentType("text/html");
+		PrintWriter out = response.getWriter();
+		out.println("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">");
+		out.println("<HTML>");
+		out.println("  <HEAD><TITLE>A Servlet</TITLE></HEAD>");
+		out.println("  <BODY>");
+		out.print("    This is ");
+		out.print(this.getClass());
+		out.println(", using the GET method");
+		out.println("  </BODY>");
+		out.println("</HTML>");
+		out.flush();
+		out.close();
+	}
+
+	/**
+	 * The doPost method of the servlet. <br>
+	 *
+	 * This method is called when a form has its tag value method equals to post.
+	 * 
+	 * @param request the request send by the client to the server
+	 * @param response the response send by the server to the client
+	 * @throws ServletException if an error occurred
+	 * @throws IOException if an error occurred
+	 */
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		username = request.getParameter("username");
+		password = request.getParameter("password");
+		repassword = request.getParameter("repassword");
+		string_code = request.getParameter("code");
+		String value = request.getSession().getAttribute("ValidateCode").toString();
+		System.out.println(password);
+		System.out.println(repassword);
+		if(password.equals(repassword)&&value.equals(string_code)&&username!=""){
+			String sql = "insert into user" +
+					"(id,username,password,point)values(?,?,md5(?),?)";
+			PreparedStatement  ps;
+			try {
+				ps = conn.prepareStatement(sql);
+				ps.setString(1, null);
+				ps.setString(2,username);
+				ps.setString(3,password);
+				ps.setInt(4, 10);
+				ps.execute();
+				response.sendRedirect(""+request.getContextPath()+"/home/login.jsp");
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}else{
+			PrintWriter out = response.getWriter();
+        	response.setContentType("text/html");
+        	out.print("<script language='javascript'>alert('register failed!!');" +
+        			"window.location.href='/Final/home/register.jsp';</script>");
+        	out.flush();
+        	out.close();
+		}
+	}
+
+	/**
+	 * Initialization of the servlet. <br>
+	 *
+	 * @throws ServletException if an error occurs
+	 */
+	public void init() throws ServletException {
+		// Put your code here
+		try {
+			conn = (Connection) MySQLTools.getMySQLConnection();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+}
